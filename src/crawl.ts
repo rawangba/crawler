@@ -97,6 +97,7 @@ export function extractPageData(html: string, pageURL: string): ExtractedPageDat
 }
 
 export async function getHTML(url: string): string {
+  console.log(`Fetching ${url}`);
   try {
     const res = await fetch(url, {
       headers: {
@@ -104,7 +105,7 @@ export async function getHTML(url: string): string {
       },
     });
     if (!res.ok) {
-      throw new Error(`Response status: ${response.status}`);
+      throw new Error(`Response status: ${res.status}`);
     }
 
     const contentType = res.headers.get("content-type");
@@ -119,4 +120,27 @@ export async function getHTML(url: string): string {
   }
 }
 
+export async function crawlPage(baseURL: string, currentURL: string = baseURL, pages: Record<string, number> = {}): Record<string, number> {
+  const baseCheck = new URL(baseURL);
+  const currentCheck = new URL(currentURL);
+  if (baseCheck.hostname !== currentCheck.hostname) {
+    return pages;
+  }
+
+  const normalizedURL = normalizeURL(currentURL);
+  if (pages[normalizedURL] > 0) {
+    pages[normalizedURL]++;
+    return pages;
+  } else {
+    pages[normalizedURL] = 1;
+  }
+
+  const html: string = await getHTML(currentURL);
+  console.log("Getting next URLs")
+  const pageData: ExtractedPageData = extractPageData(html, currentCheck.origin);
+  for (const nextURL of pageData.outgoing_links) {
+    pages = await crawlPage(baseURL, nextURL, pages);
+  }
+  return pages;
+}
 

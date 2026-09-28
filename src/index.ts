@@ -1,5 +1,5 @@
 import { argv, exit } from 'node:process';
-import { getHTML } from './crawl.ts';
+import { getHTML, crawlPage } from './crawl.ts';
 
 async function main() {
   if (argv.length !== 3) {
@@ -9,7 +9,9 @@ async function main() {
 
   const baseURL = argv[2];
   console.log(`Crawler starting at ${baseURL}`);
-  console.log(await getHTML(baseURL));
+  //console.log(await getHTML(baseURL));
+  const pages = await crawlPage(baseURL);
+  console.log(pages);
   process.exit(0);
 }
 
