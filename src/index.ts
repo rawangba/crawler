@@ -1,5 +1,6 @@
 import { argv, exit } from 'node:process';
 import { getHTML, crawlPage, crawlSiteAsync } from './crawl.ts';
+import { writeJSONReport } from './report.ts';
 
 async function main() {
   if (argv.length !== 5) {
@@ -20,8 +21,18 @@ async function main() {
   console.log(`Crawler starting at ${baseURL}`);
   //console.log(await getHTML(baseURL));
   //const pages = await crawlPage(baseURL);
-  const pages = await crawlSiteAsync(baseURL, maxConcurrency, maxPages);
-  console.log(pages);
+  const pages: Record<string, ExtractedPageData> = await crawlSiteAsync(baseURL, maxConcurrency, maxPages);
+
+  console.log("Finished crawling.");
+  const firstPage = Object.values(pages)[0];
+  if (firstPage) {
+    console.log(
+      `First page record: ${firstPage["url"]} - ${firstPage["heading"]}`,
+    );
+  }
+
+  writeJSONReport(pages, "report.json");
+
   process.exit(0);
 }
 
